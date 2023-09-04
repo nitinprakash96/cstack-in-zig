@@ -7,10 +7,10 @@ const expect = std.testing.expect;
 
 fn read_input() ![]const u8 {
     const stdin = std.io.getStdIn().reader();
-    // const stdout = std.io.getStdIn().writer();
 
     var buf: [1024]u8 = undefined;
 
+    // TODO: use `streamUntilDelimiter` instead
     if (try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |user_input| {
         return user_input;
     } else {
