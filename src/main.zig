@@ -39,15 +39,22 @@ fn do_meta_command(input_buffer: []const u8) MetaCommandResult {
 }
 
 fn read_input() ![]const u8 {
-    const stdin = std.io.getStdIn().reader();
+    const stdin = std.io.getStdIn();
 
-    var buf: [124]u8 = undefined;
+    var line_buffer: [4096]u8 = undefined;
 
-    // TODO: use `streamUntilDelimiter` instead
-    if (try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |user_input| {
-        return user_input;
-    } else {
-        return error.EndOfStream;
+    var buf_reader = std.io.bufferedReader(stdin.reader());
+    const reader = buf_reader.reader();
+
+    var fbs = std.io.fixedBufferStream(&line_buffer);
+
+    while (true) {
+        reader.streamUntilDelimiter(fbs.writer(), '\n', 4096) catch |err| switch (err) {
+            error.EndOfStream => {},
+            else => return err,
+        };
+
+        return fbs.getWritten();
     }
 }
 
